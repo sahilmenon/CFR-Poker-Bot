@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CFR Poker Bot — play a near-Nash equilibrium</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2313151a'/><text x='16' y='24' font-size='22' text-anchor='middle' fill='%23f59e0b'>%E2%99%A0</text></svg>" />
+  <meta name="description" content="A Counterfactual Regret Minimization (CFR/CFR+) poker bot for Kuhn and Leduc poker, validated against ground truth. Play the solved near-Nash strategy in your browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Counterfactual Regret Minimization</div>
+      <h1>CFR Poker Bot <span class="grad">· play the equilibrium</span></h1>
+      <p class="lede">
+        CFR and CFR+ solvers for <b>Kuhn</b> and <b>Leduc</b> poker, built from the
+        original papers and checked against ground truth. I solved the strategies offline
+        and exported them, so the bot here plays a <b>near-Nash equilibrium</b>. You can't
+        beat it over the long run. Try anyway.
+      </p>
+      <div class="links">
+        <a id="repo-link" href="#" target="_blank" rel="noopener">GitHub repo ↗</a>
+        <a href="#play">Play the bot ↓</a>
+        <a href="#validation">How it's validated ↓</a>
+      </div>
+      <div class="badges" id="badges"></div>
+    </div>
+  </header>
+
+  <section id="play">
+    <div class="wrap">
+      <h2>Play the near-Nash bot</h2>
+      <p class="sub">You swap seats every hand to keep it fair. The bot never adapts; it plays the one solved strategy.</p>
+
+      <div class="tabs">
+        <button class="tab active" data-game="kuhn">Kuhn poker</button>
+        <button class="tab" data-game="leduc">Leduc Hold'em</button>
+      </div>
+
+      <div class="table">
+        <div class="seatrow">
+          <div class="seat" id="seat-bot">
+            <div class="who">Bot</div>
+            <div class="cards" id="bot-cards"></div>
+          </div>
+          <div class="seat" id="seat-board" style="flex:.8">
+            <div class="who">Board</div>
+            <div class="cards" id="board-cards"></div>
+          </div>
+          <div class="seat" id="seat-you">
+            <div class="who">You</div>
+            <div class="cards" id="you-cards"></div>
+          </div>
+        </div>
+
+        <div class="potbar">
+          <span class="pot" id="pot"></span>
+        </div>
+
+        <div class="actions" id="actions"></div>
+        <div class="hint" id="hint"></div>
+      </div>
+
+      <div class="panel">
+        <div class="log" id="log"></div>
+        <div class="score">
+          <h3>Scoreboard</h3>
+          <div class="row"><span>Hands</span><span class="val" id="s-hands">0</span></div>
+          <div class="row"><span>Your net</span><span class="val" id="s-net">0.00</span></div>
+          <div class="row"><span>Chips / hand</span><span class="val" id="s-rate">—</span></div>
+          <div class="row"><span>Your ceiling</span><span class="val" id="s-value">—</span></div>
+          <label class="toggle"><input type="checkbox" id="gto-toggle" /> Show GTO hint on my turn</label>
+          <div class="controls">
+            <button class="btn" id="btn-next">New hand</button>
+            <button class="btn" id="btn-reset">Reset scoreboard</button>
+          </div>
+          <div class="note" id="score-note"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="validation">
+    <div class="wrap">
+      <h2>Validated against ground truth</h2>
+      <p class="sub">Kuhn poker has a closed-form solution, so a correct solver must reproduce it.</p>
+      <p class="explainer">
+        I checked the solver three ways. It reproduces Kuhn's exact game value,
+        <code>−1/18</code>. The recovered opening strategy lands in the analytic
+        <code>α</code>-family: bet the King three times as often as the Jack, and never
+        the Queen. A best-response evaluator measures <b>exploitability</b>, how much the
+        sharpest counter-strategy could win, and drives it toward zero. CFR+ hits the same
+        accuracy in about a tenth of vanilla CFR's iterations.
+      </p>
+      <div class="figs">
+        <figure>
+          <img src="assets/kuhn_convergence.png" alt="Kuhn poker convergence: CFR vs CFR+" />
+          <figcaption>Kuhn: exploitability vs iterations, CFR vs CFR+ (log–log).</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/leduc_convergence.png" alt="Leduc Hold'em convergence: CFR vs CFR+" />
+          <figcaption>Leduc: 288 information sets. CFR+ needs far fewer iterations to match CFR.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      Everything here runs in your browser. The CFR+ strategies come precomputed from the
+      Python solver as JSON; the page plays the game and looks up the bot's move. Built by
+      Sahil Menon.
+    </div>
+  </footer>
+
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

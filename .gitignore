@@ -1,0 +1,22 @@
+# Planning/scoping notes -- keep local, don't publish
+cfr-poker-bot.md
+
+# Agent/session artifacts -- never commit
+.claude/
+.aider*
+.cursor/
+.playwright-mcp/
+.wrangler/
+node_modules/
+*.session.json
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+*.npy
+.DS_Store

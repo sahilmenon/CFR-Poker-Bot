@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cfr-poker-bot"
+version = "0.1.0"
+description = "CFR / CFR+ solvers for Kuhn and Leduc poker, validated against ground truth"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.24", "matplotlib>=3.7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["cfr_poker", "cfr_poker.games"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
