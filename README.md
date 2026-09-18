@@ -1,15 +1,15 @@
 # CFR Poker Bot
 
 Counterfactual Regret Minimization (**CFR** and **CFR+**) solvers for two
-benchmark imperfect-information poker games — **Kuhn poker** and **Leduc
-Hold'em** — implemented from the original papers and **validated against ground
-truth**: the solver reproduces Kuhn poker's closed-form game value of **−1/18**
-and its analytic equilibrium family, and a best-response evaluator drives
-measured **exploitability to 9×10⁻⁴ chips/game on Kuhn and ~1.5×10⁻³ on Leduc**.
+benchmark imperfect-information poker games, **Kuhn poker** and **Leduc
+Hold'em**. I built them from the original papers and checked them against ground
+truth: the solver reproduces Kuhn poker's closed-form game value of **−1/18** and
+its analytic equilibrium family, and a best-response evaluator measures
+**exploitability** down to **9×10⁻⁴ chips/game on Kuhn and ~1.5×10⁻³ on Leduc**.
 
-Most hobby CFR repos print a strategy and stop. The point of this one is
-self-validation: Kuhn poker has a known closed-form answer, so a correct solver
-*must* recover it — that's a checkable correctness proof, not a vibe.
+Most hobby CFR repos print a strategy and stop. This one checks its own answer:
+Kuhn poker is solved in closed form, so a correct solver has to reproduce −1/18,
+and mine does.
 
 ```
 Implemented CFR / CFR+ from the original papers to solve Kuhn and Leduc poker to
@@ -21,7 +21,7 @@ converging up to ~10x faster than vanilla CFR, and beat fixed baselines by
 
 ## Results
 
-### Kuhn poker — validated against the closed-form solution
+### Kuhn poker: validated against the closed-form solution
 
 | Quantity | Result | Ground truth |
 |---|---|---|
@@ -33,12 +33,12 @@ converging up to ~10x faster than vanilla CFR, and beat fixed baselines by
 | Opener Queen-bet probability | **0.000** | 0 |
 
 Kuhn's Nash equilibria form a one-parameter family: bet the Jack with
-probability α and the King with probability 3α. The solver recovers exactly this
-relationship (King-bet = 3 × Jack-bet) and never bets the Queen as the opener —
-independent confirmation the strategy is a genuine equilibrium, not just a
-low-exploitability blob.
+probability α and the King with probability 3α. The solver recovers that
+relationship, King-bet = 3 × Jack-bet, and never bets the Queen as the opener.
+Those constraints hold only on the true equilibrium, so the match confirms the
+strategy is a real one.
 
-### Leduc Hold'em — scaling up with CFR+
+### Leduc Hold'em: scaling up with CFR+
 
 | Quantity | Result |
 |---|---|
@@ -49,10 +49,11 @@ low-exploitability blob.
 
 ### CFR+ converges an order of magnitude faster
 
-CFR+ (Tammelin 2014) pairs regret-matching⁺ with alternating updates; a hallmark
-result is that its **current** strategies converge to equilibrium, whereas
-vanilla CFR converges only in the time-**average** (its current strategy
-oscillates forever). Comparing each algorithm's canonical output:
+CFR+ (Tammelin 2014) pairs regret-matching⁺ with alternating updates. Its
+**current** strategies converge to equilibrium, so you can read the answer
+straight off them. Vanilla CFR converges only in the time-**average**; its
+current strategy keeps oscillating. Each line below compares the output that
+each algorithm is meant to produce:
 
 - **Kuhn:** CFR+ reaches CFR's best exploitability (1.7×10⁻³ at 20k iters) in
   **~9.7× fewer iterations** (~1,240 vs ~12,000).
@@ -64,11 +65,10 @@ oscillates forever). Comparing each algorithm's canonical output:
 
 ### Baseline gauntlet
 
-The solved (near-Nash) strategy played against three fixed opponents over 100k
-hands (seated in both positions to remove positional bias). The **exact**
-expected value is computed by a full tree walk; the **Monte Carlo** estimate
-carries a 95% confidence interval, and the two agree — a cross-check that the
-simulator and the solver tell the same story.
+I ran the solved (near-Nash) strategy against three fixed opponents over 100k
+hands, seated in both positions to cancel positional bias. A full tree walk
+gives the **exact** expected value; a **Monte Carlo** run gives a 95% confidence
+interval. The two agree, which cross-checks the simulator against the solver.
 
 Leduc Hold'em, solved strategy (CFR+, 6k iters):
 
@@ -82,11 +82,11 @@ Leduc Hold'em, solved strategy (CFR+, 6k iters):
 
 An interactive version runs at **[poker.sahilmenon.com](https://poker.sahilmenon.com)**:
 play hands against the solved bot for both games, with the equilibrium action
-frequencies shown on request. It runs entirely in the browser. The CFR+
-strategies are exported to `web/data/*.json`, and a small JS reimplementation of
-the rules (`web/engine.js`) looks up the bot's move. `web/selfcheck.js` verifies
-the JS engine produces byte-identical information-set keys to the Python solver
-(12 for Kuhn, 288 for Leduc) so the lookups can't silently drift.
+frequencies shown on request. It runs entirely in the browser. I export the CFR+
+strategies to `web/data/*.json`, and a small JS reimplementation of the rules
+(`web/engine.js`) looks up the bot's move. `web/selfcheck.js` checks that the JS
+engine produces byte-identical information-set keys to the Python solver (12 for
+Kuhn, 288 for Leduc), so the lookups can't drift.
 
 ### Deploy (Cloudflare Pages)
 
@@ -101,24 +101,24 @@ The `web/` folder is static, with no build step.
 ## How it works
 
 An **extensive-form game** interface (`cfr_poker/games/base.py`) exposes chance
-nodes, player decision nodes, information-set keys and terminal utilities. Each
-game is compiled once into a flat **game tree** (`cfr_poker/tree.py`) with shared
-information-set ids so the inner loops never re-walk the abstract game — that is
-what makes Leduc solve in milliseconds per iteration.
+nodes, player decision nodes, information-set keys, and terminal utilities. I
+compile each game once into a flat **game tree** (`cfr_poker/tree.py`) with
+shared information-set ids, so the inner loops never re-walk the abstract game.
+That is what solves Leduc in milliseconds per iteration.
 
-- **`cfr_poker/cfr.py`** — one game-agnostic traversal implements both vanilla
-  CFR (regret matching, simultaneous updates, uniform averaging) and CFR+
-  (regret-matching⁺, alternating updates, linear averaging). Utilities are
-  tracked in player 0's frame and sign-flipped for the acting player, so the
-  same code is correct through chance nodes and round transitions.
-- **`cfr_poker/best_response.py`** — the exploitability evaluator. A best
-  response must commit one action per information set (it can't see hidden
-  cards), so it aggregates each info set's reach-weighted action values before
-  choosing — the piece that makes "exploitability = X" defensible.
-- **`cfr_poker/analytic.py`** — Kuhn's ground-truth facts (value −1/18, the
-  α-family) used as correctness checks.
-- **`cfr_poker/baselines.py`** — fixed opponents (random, call-station,
-  always-raise) and the exact + Monte-Carlo gauntlet.
+- **`cfr_poker/cfr.py`**: one game-agnostic traversal runs both vanilla CFR
+  (regret matching, simultaneous updates, uniform averaging) and CFR+
+  (regret-matching⁺, alternating updates, linear averaging). It tracks utilities
+  in player 0's frame and flips the sign for the acting player, so the same code
+  stays correct through chance nodes and round transitions.
+- **`cfr_poker/best_response.py`**: the exploitability evaluator. A best response
+  commits one action per information set, since it can't see the hidden cards, so
+  it aggregates each info set's reach-weighted action values before choosing.
+  That step is what makes an exploitability number defensible.
+- **`cfr_poker/analytic.py`**: Kuhn's ground-truth facts (value −1/18, the
+  α-family), used as correctness checks.
+- **`cfr_poker/baselines.py`**: fixed opponents (random, call-station,
+  always-raise) plus the exact and Monte-Carlo gauntlet.
 
 ## Quickstart
 
@@ -160,20 +160,20 @@ web/                interactive browser demo (Cloudflare Pages)
 
 ## Scope
 
-Deliberately bounded to stay finishable and checkable: no deep learning (no Deep
-CFR), no no-limit, no card abstraction. The browser demo just plays the exported
-strategies; it isn't part of the solver. The value is a faithful, self-validating
-reproduction of two published results.
+I bounded the scope to keep it finishable and checkable: no deep learning (no
+Deep CFR), no no-limit, no card abstraction. The browser demo only plays the
+exported strategies; it isn't part of the solver. What's left is a faithful,
+self-validating reproduction of two published results.
 
 ## References
 
 - Zinkevich, Johanson, Bowling, Piccione (2007), *Regret Minimization in Games
-  with Incomplete Information* — the original CFR paper.
+  with Incomplete Information*. The original CFR paper.
 - Tammelin (2014), *Solving Large Imperfect Information Games Using CFR+*;
   Bowling et al. (2015, *Science*), *Heads-up Limit Hold'em Poker is Solved*.
 - Neller & Lanctot (2013), *An Introduction to Counterfactual Regret
-  Minimization* — the canonical tutorial with a Kuhn worked example.
-- [OpenSpiel](https://github.com/deepmind/open_spiel) — reference CFR/CFR+
+  Minimization*. The canonical tutorial, with a Kuhn worked example.
+- [OpenSpiel](https://github.com/deepmind/open_spiel): reference CFR/CFR+
   implementations and Kuhn/Leduc exploitability benchmarks.
-- [Kuhn poker](https://en.wikipedia.org/wiki/Kuhn_poker) — analytic α-family and
+- [Kuhn poker](https://en.wikipedia.org/wiki/Kuhn_poker): analytic α-family and
   the −1/18 game value.
