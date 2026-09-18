@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-poker.sahilmenon.com-brightgreen)](https://poker.sahilmenon.com)
 
-**Play it: [poker.sahilmenon.com](https://poker.sahilmenon.com)** — the solved bot, running in your browser.
+**Play it: [poker.sahilmenon.com](https://poker.sahilmenon.com).** The solved bot runs in your browser.
 
 Counterfactual Regret Minimization (**CFR** and **CFR+**) solvers for two
 benchmark imperfect-information poker games, **Kuhn poker** and **Leduc
@@ -17,9 +17,9 @@ Most hobby CFR repos print a strategy and stop. This one checks its own answer:
 Kuhn poker is solved in closed form, so a correct solver has to reproduce −1/18,
 and mine does.
 
-In short: both games are solved to a near-Nash equilibrium, CFR+ gets there up
-to ~10× faster than vanilla CFR, and the resulting strategy beats fixed
-baselines by 38–72 bb/100 over 100k self-play hands.
+I solve both games to a near-Nash equilibrium. CFR+ gets there up to ~10×
+faster than vanilla CFR, and the solved strategy beats fixed baselines by
+38–72 bb/100 over 100k self-play hands.
 
 ## Results
 
